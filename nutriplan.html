@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tu nutri wannabe María</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#FFF0F5;--ink:#3A1F2D;--mut:#7A5668;--card:#fff;--ac:#D6336C;--ac2:#9B72D1;--bd:#F3CFDD;--bad:#B3402F;--ok:#2E7D4F;--warn:#9A6A00;--on:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#24121B;--ink:#FBE6EE;--mut:#D3A9BC;--card:#33202B;--ac:#FF8FB8;--ac2:#C9A0FF;--bd:#4F3342;--bad:#F08A78;--ok:#6CCB8F;--warn:#E8B84A;--on:#0F1A16;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#24121B;--ink:#FBE6EE;--mut:#D3A9BC;--card:#33202B;--ac:#FF8FB8;--ac2:#C9A0FF;--bd:#4F3342;--bad:#F08A78;--ok:#6CCB8F;--warn:#E8B84A;--on:#0F1A16;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 'Source Sans 3',system-ui,sans-serif}
+#app{max-width:760px;margin:0 auto;padding:16px}
+h1,h2,h3,h4{font-family:'Bricolage Grotesque',system-ui,sans-serif;line-height:1.15;margin:0 0 8px}
+h1{font-size:clamp(34px,8vw,54px);font-weight:800}h2{font-size:28px}h3{font-size:20px}h4{font-size:18px;display:flex;justify-content:space-between;gap:8px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;margin:12px 0}
+.mut{color:var(--mut);font-size:15px}.bar{height:8px;background:var(--bd);border-radius:8px;overflow:hidden;margin:8px 0}.bar i{display:block;height:100%;background:var(--ac)}
+label{display:block;font-weight:600;font-size:15px;margin:10px 0}label input,label select,textarea{display:block;width:100%;margin-top:4px;padding:11px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit}
+.chk{display:inline-flex;align-items:center;gap:6px;font-weight:400;margin:4px 12px 4px 0}.chk input{width:auto;margin:0}
+button{font:inherit;font-weight:600;padding:11px 18px;border-radius:10px;border:1px solid var(--ac);background:transparent;color:var(--ac);cursor:pointer}
+button.p{background:var(--ac);color:var(--on)}button.s{padding:6px 10px;font-size:14px}button:hover{filter:brightness(1.1)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--ac2);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.row.sp{justify-content:space-between}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.grid .card{margin:0}.big{font:800 28px 'Bricolage Grotesque',sans-serif}
+.al{border-left:5px solid var(--warn);background:var(--card);padding:12px;border-radius:8px;margin:10px 0}.al.bad{border-color:var(--bad)}.err{color:var(--bad);font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:15px}td,th{padding:6px 4px;border-bottom:1px solid var(--bd);text-align:right}td:first-child,th:first-child{text-align:left}
+.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+.donut{width:130px;height:130px;border-radius:50%;display:grid;place-items:center}.donut b{background:var(--card);width:80px;height:80px;border-radius:50%;display:grid;place-items:center;font-size:14px}
+.tabs{display:flex;gap:6px;overflow-x:auto;margin:10px 0}.tabs button{white-space:nowrap;padding:6px 12px;font-size:14px}.tabs .on{background:var(--ac);color:var(--on)}
+ul{padding-left:18px;margin:6px 0}li select{width:auto;display:inline;padding:2px;margin:0;font-size:14px}textarea{height:180px;font-family:monospace;font-size:13px}
+.hero{padding:28px 0}.sw{display:inline-block;width:10px;height:10px;border-radius:2px}
+@media print{.noprint,.tabs,button{display:none!important}}
+</style></head><body><div id="app"></div>
+<script>
+const KEY='nutriplan-v1',$=s=>document.querySelector(s),r5=x=>Math.round(x/5)*5,rd=x=>Math.round(x);
+// Base de alimentos ampliable: [id,nombre,categoría,rol(P/C/F/V),tipo(m carne,f pescado,e huevo,d lácteo,p vegetal),kcal,prot,grasa,carb,fibra,€/kg,franjas(b/m/s),alérgeno(gl,la,hu,pe,fr,so,ca)] por 100 g. Valores orientativos.
+const FOODS=[['pollo','Pechuga de pollo','Carnes y pescados','P','m',165,31,3.6,0,0,8,'m',''],['ternera','Ternera magra','Carnes y pescados','P','m',170,26,7,0,0,13,'m',''],['salmon','Salmón','Carnes y pescados','P','f',208,20,13,0,0,16,'m','pe'],['atun','Atún al natural','Carnes y pescados','P','f',116,26,1,0,0,14,'m','pe'],['huevo','Huevos','Lácteos y huevos','P','e',143,12.6,9.5,.7,0,3.5,'bm','hu'],['yogur','Yogur griego natural','Lácteos y huevos','P','d',97,9,5,3.6,0,3,'bs','la'],['queso','Queso fresco batido 0%','Lácteos y huevos','P','d',46,8,.2,3.5,0,2.5,'bs','la'],['tofu','Tofu firme','Legumbres y soja','P','p',144,15,9,3,2,6,'bm','so'],['lentejas','Lentejas cocidas','Legumbres y soja','P','p',116,9,.4,20,8,2,'m',''],['garbanzos','Garbanzos cocidos','Legumbres y soja','P','p',164,9,2.6,27,8,2,'m',''],['arroz','Arroz cocido','Cereales y tubérculos','C','p',130,2.7,.3,28,.4,1.5,'m',''],['pasta','Pasta cocida','Cereales y tubérculos','C','p',158,5.8,.9,31,1.8,1.5,'m','gl'],['patata','Patata cocida','Cereales y tubérculos','C','p',87,1.9,.1,20,1.8,1,'m',''],['quinoa','Quinoa cocida','Cereales y tubérculos','C','p',120,4.4,1.9,21,2.8,5,'m',''],['avena','Copos de avena','Cereales y tubérculos','C','p',370,13,7,60,10,2.5,'b','gl'],['pan','Pan integral','Cereales y tubérculos','C','p',250,10,3.5,43,7,3,'bs','gl'],['aceite','Aceite de oliva','Grasas y frutos secos','F','p',884,0,100,0,0,8,'m',''],['aguacate','Aguacate','Grasas y frutos secos','F','p',160,2,15,9,7,5,'bms',''],['almendra','Almendras','Grasas y frutos secos','F','p',579,21,50,22,12,12,'bs','fr'],['cacahuete','Crema de cacahuete','Grasas y frutos secos','F','p',588,25,50,20,6,7,'bs','ca'],['brocoli','Brócoli','Verduras y fruta','V','p',34,2.8,.4,7,2.6,2.5,'m',''],['ensalada','Ensalada mixta','Verduras y fruta','V','p',20,1.5,.2,3.5,1.8,3,'m',''],['calabacin','Calabacín salteado','Verduras y fruta','V','p',17,1.2,.3,3,1,2,'m',''],['platano','Plátano','Verduras y fruta','V','p',89,1.1,.3,23,2.6,2,'bs',''],['manzana','Manzana','Verduras y fruta','V','p',52,.3,.2,14,2.4,2,'s',''],['frutos','Frutos rojos','Verduras y fruta','V','p',50,1,.3,12,3,8,'bs','']];
+const F={};FOODS.forEach(a=>F[a[0]]={id:a[0],name:a[1],cat:a[2],role:a[3],kind:a[4],k:a[5],p:a[6],f:a[7],c:a[8],fi:a[9],price:a[10],slot:a[11],al:a[12]});
+const ALG={gl:'Gluten',la:'Lácteos',hu:'Huevo',pe:'Pescado',fr:'Frutos secos',so:'Soja',ca:'Cacahuete'};
+const STEPS=['Bienvenida','Tus datos','Objetivo','Actividad','Hábitos','Resultados','Tu plan','Revisión','Compras','Seguimiento'];
+const DEF=()=>({step:0,p:{sexo:'',trab:'sed',tipo:'pesas',nivel:'int',obj:'grasa',ritmo:'mod',estres:'medio',dieta:'omni',nc:3,ns:1,nd:3,alerg:[],intol:[],cond:[]},plan:null,fav:[],buy:null,log:[],ex:false});
+function load(){try{const r=localStorage.getItem(KEY);if(r){const s=JSON.parse(r);return Object.assign(DEF(),s,{p:Object.assign(DEF().p,s.p)})}}catch(e){try{localStorage.removeItem(KEY)}catch(_){}}return DEF()}
+let S=load(),N={d:new Date().toISOString().slice(0,10)},EX=null,ERR=[];
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+// ---------- Cálculos ----------
+function calc(p){
+ const lm=p.grasa?p.peso*(1-p.grasa/100):null,k=p.peso/70;
+ const bmr=lm?370+21.6*lm:10*p.peso+6.25*p.altura-5*p.edad+(p.sexo=='h'?5:-161);
+ const fn=lm?'Katch-McArdle (masa magra '+lm.toFixed(1)+' kg)':'Mifflin-St Jeor';
+ const neat=(p.pasos||0)*.04*k+{sed:0,mod:120,act:300}[p.trab];
+ const tr=p.dias*(p.dur||0)*({pesas:5,cardio:8,cali:5.5,dep:7,mixto:6.5,otro:5}[p.tipo])*k/7,car=(p.cardio||0)*k;
+ let tdee=bmr*1.1+neat+tr+car,corr=false;
+ if(p.ingesta&&p.pesoPrev&&Math.abs(p.pesoPrev-p.peso)<=.5){tdee=(tdee+p.ingesta)/2;corr=true}
+ const ADJ={grasa:-.18,peso:-.15,recomp:-.05,musculo:.1,subir:.12,mant:0,mejora:-.05,rend:.05,otro:0};
+ let adj=ADJ[p.obj]*(ADJ[p.obj]<0&&p.ritmo=='suave'?.6:1);
+ const safe=p.edad<18||p.cond.includes('emb')||p.cond.includes('tca');if(safe&&adj<0)adj=0;
+ const fl=p.sexo=='h'?1500:1200;let kcal=tdee*(1+adj);if(adj<0)kcal=Math.max(kcal,Math.min(tdee,Math.max(fl,bmr)));
+ const ppk={grasa:2,peso:1.8,recomp:2,musculo:1.8,subir:1.6,mant:1.6,mejora:1.8,rend:1.6,otro:1.6}[p.obj];
+ let P=Math.min(ppk*p.peso,.35*kcal/4),Fa=Math.max(.8*p.peso,.25*kcal/9);P=rd(P);Fa=rd(Fa);
+ const C=Math.max(0,rd((kcal-4*P-9*Fa)/4)),kc=4*P+4*C+9*Fa;
+ return{bmr:rd(bmr),fn,tdee:rd(tdee),kcal:kc,P,F:Fa,C,fib:rd(14*kc/1000),adj:kc/tdee-1,ppk:P/p.peso,corr,safe}}
+function risks(p,c){const r=[],cd=p.cond;
+ if(p.edad<18)r.push('Eres menor de edad: las necesidades cambian con el crecimiento. Estas cifras son solo informativas y debe supervisarlas un profesional sanitario.');
+ if(cd.includes('emb'))r.push('Embarazo o lactancia: no se aplican déficits. Consulta con tu matrona, médico o dietista-nutricionista.');
+ if(cd.includes('tca'))r.push('Trastornos de la conducta alimentaria (actuales o pasados): conviene que un profesional sanitario acompañe cualquier plan. Se evitan déficits.');
+ if(cd.includes('enf'))r.push('Condición médica relevante (metabólica, renal, hepática o digestiva): consulta con tu equipo médico antes de seguir un plan.');
+ if(cd.includes('med'))r.push('Medicación que afecta al peso, apetito o metabolismo: pide supervisión profesional.');
+ if(cd.includes('rest'))r.push('Con antecedentes de dietas muy restrictivas, prioriza un enfoque flexible y sostenible, idealmente con apoyo profesional.');
+ if(p.ingesta&&p.ingesta<1200)r.push('Tu ingesta actual es muy baja. No se recomienda reducir más; consulta con un profesional.');
+ if(p.pesoObj&&Math.abs(p.pesoObj-p.peso)/p.peso>.3)r.push('Tu peso objetivo implica un cambio superior al 30 %. Divídelo en etapas y consúltalo con un profesional.');
+ if(p.peso/(p.altura/100)**2<18.5&&c.adj<0)r.push('Tu IMC está por debajo de 18,5: no es recomendable un déficit calórico.');
+ return r}
+// ---------- Validación ----------
+const V=(c,m)=>c?'':m,inR=(x,a,b)=>x!==''&&x!==undefined&&x>=a&&x<=b;
+function validate(s){const p=S.p,e=[];
+ if(s==1){e.push(V(inR(p.edad,12,90),'Introduce una edad entre 12 y 90 años.'),V(p.sexo,'Selecciona el sexo biológico usado en el cálculo metabólico.'),V(inR(p.peso,30,300),'Introduce un peso válido en kilogramos (30–300).'),V(inR(p.altura,120,230),'Introduce una altura válida en centímetros (120–230).'));if(p.grasa!==''&&p.grasa!==undefined)e.push(V(inR(p.grasa,3,60),'El porcentaje de grasa debe estar entre 3 y 60, o déjalo vacío si no lo conoces.'))}
+ if(s==2&&p.pesoObj)e.push(V(inR(p.pesoObj,30,300),'El peso objetivo debe estar en kilogramos (30–300) o déjalo vacío.'));
+ if(s==3)e.push(V(inR(p.pasos,0,50000),'Indica tus pasos diarios aproximados (0–50000).'),V(inR(p.dias,0,7),'Los días de entrenamiento deben ser de 0 a 7.'),V(p.dias==0||inR(p.dur,10,300),'Indica la duración media de la sesión (10–300 min).'),V(!p.cardio||inR(p.cardio,0,1500),'Los minutos de cardio por semana deben ser de 0 a 1500.'));
+ if(s==4)e.push(V(!p.ingesta||inR(p.ingesta,500,8000),'La ingesta aproximada debe estar entre 500 y 8000 kcal, o déjala vacía.'),V(!p.pesoPrev||inR(p.pesoPrev,30,300),'El peso de hace 4 semanas debe estar en kilogramos o déjalo vacío.'));
+ if(s==6)e.push(V(inR(p.nc,2,5),'Elige entre 2 y 5 comidas principales.'),V(inR(p.ns,0,3),'Elige entre 0 y 3 snacks.'));
+ ERR=e.filter(Boolean);return!ERR.length}
+// ---------- Generador de menús ----------
+const nrm=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+function ok(f){const p=S.p;if(f.al&&(p.alerg.includes(f.al)||p.intol.includes(f.al)))return false;
+ const d=p.dieta;if(d=='pesc'&&f.kind=='m'||d=='veg'&&'mf'.includes(f.kind)||d=='vegan'&&f.kind!='p')return false;
+ return!(p.nogusta||'').split(',').map(t=>nrm(t.trim())).some(t=>t.length>2&&nrm(f.name).includes(t))}
+function pick(role,t){const a=Object.values(F).filter(f=>f.role==role&&ok(f)),b=a.filter(f=>f.slot.includes(t)),l=b.length?b:a;return l.length?l[Math.random()*l.length|0]:null}
+function genMeal(t,tg){const P=pick('P',t),C=pick('C',t),Fa=pick('F',t),Vg=pick('V',t),it=[],a={p:0,f:0,c:0};
+ const add=(f,g)=>{g=r5(g);if(g<10)return;it.push({id:f.id,g});a.p+=f.p*g/100;a.f+=f.f*g/100;a.c+=f.c*g/100},cap=(f,g,m)=>Math.min(g,m*100/f.k);
+ if(Vg)add(Vg,t=='m'?120:100);if(P)add(P,cap(P,(tg.P-a.p)*100/P.p,600));if(C)add(C,cap(C,(tg.C-a.c)*100/C.c,700));if(Fa)add(Fa,cap(Fa,(tg.F-a.f)*100/Fa.f,270));
+ return it}
+function slots(){const{nc,ns}=S.p,M={2:[['Comida','m',1.1],['Cena','m',1]],3:[['Desayuno','b',.8],['Comida','m',1.1],['Cena','m',1]],4:[['Desayuno','b',.8],['Comida','m',1.1],['Merienda','s',.6],['Cena','m',1]],5:[['Desayuno','b',.8],['Media mañana','s',.6],['Comida','m',1.1],['Merienda','s',.6],['Cena','m',1]]}[nc],r=[];
+ M.forEach((m,i)=>{r.push(m);if(i<ns)r.push(['Snack '+(i+1),'s',.4])});for(let i=nc;i<ns;i++)r.push(['Snack '+(i+1),'s',.4]);return r}
+function genDay(){const c=calc(S.p),sl=slots(),w=sl.reduce((a,s)=>a+s[2],0);
+ return sl.map(s=>{const f=s[2]/w,tg={P:c.P*f,F:c.F*f,C:c.C*f,k:c.kcal*f};return{n:s[0],t:s[1],tg,items:genMeal(s[1],tg)}})}
+function gen(){S.plan=Array.from({length:S.p.nd},genDay);S.buy=null;save()}
+const tot=it=>it.reduce((a,x)=>{const f=F[x.id],m=x.g/100;a.k+=f.k*m;a.p+=f.p*m;a.f+=f.f*m;a.c+=f.c*m;a.fi+=f.fi*m;return a},{k:0,p:0,f:0,c:0,fi:0});
+const dayTot=d=>tot(d.flatMap(m=>m.items));
+function st(x,t){const d=Math.abs(x-t)/t;return d<=.05?['ok','Dentro del objetivo']:d<=.1?['warn',x>t?'Ligeramente por encima':'Ligeramente por debajo']:['bad','Fuera de rango']}
+// ---------- Seguimiento ----------
+function evalLog(){const L=[...S.log].filter(x=>x.peso).sort((a,b)=>a.d<b.d?-1:1);
+ if(L.length<4)return'Registra al menos 4 pesajes repartidos en dos semanas o más antes de valorar ajustes.';
+ const t=x=>new Date(x).getTime()/864e5,xs=L.map(x=>t(x.d)),ys=L.map(x=>x.peso),n=L.length;
+ if(xs[n-1]-xs[0]<14)return'Todavía hay menos de 14 días de datos. Mantén tus calorías actuales.';
+ const mx=xs.reduce((a,b)=>a+b)/n,my=ys.reduce((a,b)=>a+b)/n,sl=xs.reduce((s,x,i)=>s+(x-mx)*(ys[i]-my),0)/xs.reduce((s,x)=>s+(x-mx)**2,0)*7,pc=sl/my*100;
+ const av=k=>{const v=L.filter(x=>x[k]);return v.length?v.reduce((a,x)=>a+x[k],0)/v.length:null},adh=av('adh'),en=av('en'),ha=av('ham');
+ const tend='Tendencia: '+(sl>=0?'+':'')+sl.toFixed(2)+' kg/semana ('+pc.toFixed(2)+' %). ';
+ if(adh!==null&&adh<70)return tend+'Tu adherencia media es baja: mejora la constancia antes de tocar las calorías.';
+ const o=S.p.obj,loss=['grasa','peso','mejora'].includes(o),gain=['musculo','subir'].includes(o);
+ if(loss&&pc>-.1)return tend+(en!==null&&en<=2||ha!==null&&ha>=4?'Con energía baja o mucha hambre, no recortes más; revisa sueño y estrés.':'Podrías reducir unas 100 kcal/día (≈5 %) y reevaluar en 2 semanas.');
+ if(loss&&pc<-1)return tend+'Pierdes peso demasiado rápido. Sube unas 100–150 kcal/día.';
+ if(gain&&pc<.05)return tend+'Podrías añadir unas 100 kcal/día (≈5 %) y reevaluar en 2 semanas.';
+ if(gain&&pc>.5)return tend+'Ganas más rápido de lo prudente. Reduce unas 100 kcal/día.';
+ if(!loss&&!gain&&Math.abs(pc)>.3)return tend+'Tu peso no está estable: ajusta ±100 kcal/día en la dirección contraria.';
+ return tend+'Vas en un ritmo razonable. Mantén las calorías y sigue registrando.'}
+// ---------- Vistas ----------
+const g=k=>S.p[k]??'';
+const inp=(k,l,t='number',a='')=>`<label>${l}<input data-k="p.${k}" type="${t}" value="${g(k)}" ${a}></label>`;
+const sel=(k,l,o)=>`<label>${l}<select data-k="p.${k}">${o.map(([v,t])=>`<option value="${v}" ${g(k)==v?'selected':''}>${t}</option>`).join('')}</select></label>`;
+const ck=(k,o)=>o.map(([v,t])=>`<label class="chk"><input type="checkbox" data-ck="${k}" value="${v}" ${S.p[k].includes(v)?'checked':''}>${t}</label>`).join('');
+const H=(t,d)=>`<h2>${t}</h2><p class="mut">${d}</p>`;
+const AL=Object.entries(ALG);
+const VIEW=[
+()=>`<div class="hero"><h1>Tu nutri wannabe María 💅</h1><p>Sin bata ni diploma, pero con fórmulas de verdad. Calcula tus calorías y macros, genera menús sin tus alérgenos, ajusta porciones, haz la lista de la compra y sigue tu progreso.</p>
+<div class="al"><b>Son estimaciones.</b> María es wannabe: no sustituye a un dietista-nutricionista ni a un profesional sanitario, y no ofrece diagnósticos.</div>
+<div class="row"><button class="p" data-a="go:1">Empezar</button>${S.p.peso?`<button data-a="go:5">Cargar mis datos guardados</button>`:''}<button data-a="sample">Probar con datos de ejemplo</button></div>
+<div class="card"><h3>Privacidad y seguridad</h3><p class="mut">Tus datos se guardan solo en este navegador (localStorage). No se envían a ningún servicio externo. Puedes borrarlos cuando quieras desde el pie de página.</p></div></div>`,
+()=>H('Tus datos','Los usamos solo para calcular tu metabolismo basal.')+`<div class="grid">${inp('edad','Edad (años)')}${sel('sexo','Sexo biológico (para el cálculo metabólico)',[['','Selecciona…'],['h','Hombre'],['m','Mujer']])}${inp('peso','Peso actual (kg)','number','step=".1"')}${inp('altura','Altura (cm)')}</div>
+<label>% de grasa corporal (opcional; déjalo vacío si no lo sabes)<input data-k="p.grasa" type="number" step=".1" value="${g('grasa')}"></label>${inp('grasaM','Método usado para medirlo (opcional)','text')}<div class="grid">${inp('cintura','Cintura (cm, opcional)')}${inp('cadera','Cadera (cm, opcional)')}</div>`,
+()=>H('Objetivo','Perder peso no siempre es perder grasa: elige lo que mejor te describe.')+sel('obj','Objetivo principal',[['grasa','Perder grasa corporal'],['peso','Bajar de peso en general'],['recomp','Recomposición corporal'],['musculo','Ganar masa muscular'],['subir','Subir de peso'],['mant','Mantener el peso'],['mejora','Mejorar la composición corporal'],['rend','Mejorar el rendimiento deportivo'],['otro','Otro objetivo']])+inp('desc','Descríbelo con tus palabras (opcional)','text')+inp('pesoObj','Peso objetivo (kg, opcional)','number','step=".1"')+sel('ritmo','Ritmo de cambio',[['suave','Suave (más sostenible)'],['mod','Moderado']])+`<p><b>¿Te aplica algo de esto? (opcional, solo para tu seguridad)</b></p>`+ck('cond',[['emb','Embarazo o lactancia'],['tca','Trastorno alimentario (actual o pasado)'],['enf','Enfermedad metabólica, renal, hepática o digestiva'],['med','Medicación que afecta al peso o apetito']]),
+()=>H('Actividad y entrenamiento','Contamos pasos, trabajo, entrenamiento y cardio, no solo el gimnasio.')+`<div class="grid">${inp('pasos','Pasos al día (aprox.)')}${sel('trab','Tipo de trabajo',[['sed','Sedentario'],['mod','Moderadamente activo'],['act','Físicamente activo']])}${inp('dias','Días de entrenamiento / semana')}${inp('dur','Duración media (min)')}</div>`+sel('tipo','Tipo de entrenamiento',[['pesas','Pesas'],['cardio','Cardio'],['cali','Calistenia'],['dep','Deportes'],['mixto','Mixto'],['otro','Otro']])+sel('nivel','Experiencia',[['pri','Principiante'],['int','Intermedio'],['ava','Avanzado']])+inp('cardio','Cardio extra (minutos por semana, opcional)'),
+()=>H('Hábitos y contexto','Todo es opcional salvo marcar lo que te afecte. «No lo sé» = déjalo vacío.')+`<div class="grid">${inp('ingesta','Ingesta actual aprox. (kcal/día)')}${inp('pesoPrev','Peso hace 4 semanas (kg)','number','step=".1"')}${inp('sueno','Horas de sueño')}${sel('estres','Estrés percibido',[['bajo','Bajo'],['medio','Medio'],['alto','Alto']])}</div><p><b>¿Alguna de estas situaciones te afecta?</b></p>${ck('cond',[['emb','Embarazo o lactancia'],['tca','Trastorno alimentario (actual o pasado)'],['enf','Enfermedad metabólica, renal, hepática o digestiva'],['med','Medicación que afecta al peso o apetito'],['rest','Dietas muy restrictivas previas']])}`,
+()=>{const p=S.p,c=calc(p),R=risks(p,c),pp=c.P*4/c.kcal*100,cc=c.C*4/c.kcal*100,mx=Math.max(c.tdee,c.kcal);
+ return H('Tus resultados','Estimaciones iniciales para empezar; se afinan con tu progreso real.')+R.map(x=>`<div class="al bad">${x}</div>`).join('')+(R.length?`<p class="mut">Mostramos estimaciones informativas sin recomendaciones agresivas.</p>`:'')+
+ `<div class="grid"><div class="card"><div class="mut">Metabolismo basal</div><div class="big">${c.bmr} kcal</div></div><div class="card"><div class="mut">Gasto total estimado</div><div class="big">${c.tdee} kcal</div></div><div class="card"><div class="mut">Calorías objetivo</div><div class="big">${c.kcal} kcal</div></div><div class="card"><div class="mut">${c.adj<-.01?'Déficit':c.adj>.01?'Superávit':'Mantenimiento'}</div><div class="big">${(c.adj*100).toFixed(0)} %</div></div><div class="card"><div class="mut">Proteína</div><div class="big">${c.ppk.toFixed(1)} g/kg</div></div></div>
+ <div class="card"><table><tr><th>Objetivo diario</th><th>Cantidad</th></tr><tr><td>Calorías</td><td>${c.kcal} kcal</td></tr><tr><td>Proteínas</td><td>${c.P} g</td></tr><tr><td>Grasas</td><td>${c.F} g</td></tr><tr><td>Carbohidratos</td><td>${c.C} g</td></tr><tr><td>Fibra (orientativa)</td><td>${c.fib} g</td></tr></table><p class="mut">Comprobación: ${c.P}×4 + ${c.C}×4 + ${c.F}×9 = ${c.kcal} kcal. Rango razonable: ${rd(c.kcal*.93)}–${rd(c.kcal*1.07)} kcal.</p></div>
+ <div class="card row"><div class="donut" style="background:conic-gradient(var(--ac) 0 ${pp}%,var(--ac2) 0 ${pp+cc}%,var(--mut) 0 100%)"><b>macros</b></div><div><span class="sw" style="background:var(--ac)"></span> Proteína ${pp.toFixed(0)} %<br><span class="sw" style="background:var(--ac2)"></span> Carbohidratos ${cc.toFixed(0)} %<br><span class="sw" style="background:var(--mut)"></span> Grasas ${(100-pp-cc).toFixed(0)} %</div></div>
+ <div class="card"><b>Gasto estimado vs objetivo</b><div class="bar"><i style="width:${c.tdee/mx*100}%"></i></div><div class="bar"><i style="width:${c.kcal/mx*100}%;background:var(--ac2)"></i></div></div>
+ <div class="card mut"><b>Cómo se calculó.</b> BMR con ${c.fn}. Gasto = BMR×1,1 + pasos + trabajo + entrenamiento + cardio${c.corr?', corregido con tu ingesta actual y peso estable':''}. Proteína ${c.ppk.toFixed(1)} g/kg para ${p.obj=='musculo'||p.obj=='subir'?'apoyar el músculo':'conservar masa magra'}; grasa mínima de 0,8 g/kg (o 25 % de las kcal); el resto son carbohidratos. Evalúa tu progreso con la media del peso de 2–4 semanas antes de cambiar nada.</div>
+ <div class="row"><button data-a="go:1">Editar datos</button><button class="p" data-a="go:6">Continuar con mi plan</button></div>`},
+()=>H('Comidas y preferencias','Las alergias e intolerancias se excluyen siempre del plan.')+`<div class="grid">${sel('nc','Comidas principales',[[2,'2'],[3,'3'],[4,'4'],[5,'5']])}${sel('ns','Snacks',[[0,'Ninguno'],[1,'1'],[2,'2'],[3,'3']])}${sel('nd','Duración del plan',[[1,'1 día'],[3,'3 días'],[5,'5 días'],[7,'7 días']])}${sel('dieta','Tipo de alimentación',[['omni','Omnívora'],['flexi','Flexitariana'],['pesc','Pescetariana'],['veg','Vegetariana'],['vegan','Vegana']])}</div>
+ <div class="card"><b>Alergias o restricciones médicas</b> (se excluyen sin excepción)<br>${ck('alerg',AL)}</div><div class="card"><b>Intolerancias</b> (se excluyen)<br>${ck('intol',[['la','Lactosa / lácteos'],['gl','Gluten']])}</div>${inp('nogusta','Alimentos que no te gustan (separados por comas)','text')}<p class="mut">Los valores nutricionales son aproximados y varían según marca, cocción y tamaño. Revisa siempre las etiquetas.</p>`,
+()=>{if(!S.plan)return H('Revisión del plan','')+`<div class="card">Aún no hay un plan. <button class="p" data-a="gen">Generar plan</button></div>`;
+ const c=calc(S.p);return H('Revisión del plan','Aproximación a tus objetivos. Cambia comidas, ingredientes y porciones; los totales se recalculan.')+`<div class="row noprint"><button data-a="gen">Regenerar todo</button></div>`+S.plan.map((d,i)=>{const T=dayTot(d),rows=[['Calorías',c.kcal,T.k,'kcal'],['Proteínas',c.P,T.p,'g'],['Grasas',c.F,T.f,'g'],['Carbohidratos',c.C,T.c,'g'],['Fibra',c.fib,T.fi,'g']];
+ return`<h3>Día ${i+1}</h3>`+d.map((m,j)=>{const t=tot(m.items),ing=m.items.map(x=>F[x.id]);
+ return`<div class="card"><h4><span>${m.n}</span><span class="mut">${rd(t.k)} kcal</span></h4>${m.items.length?`<ul>${m.items.map((x,q)=>`<li>${x.g} g <select data-sw="${i}:${j}:${q}">${Object.values(F).filter(f=>f.role==F[x.id].role&&(f.id==x.id||ok(f))).map(f=>`<option value="${f.id}" ${f.id==x.id?'selected':''}>${f.name}</option>`).join('')}</select></li>`).join('')}</ul>`:'<p class="err">No hay alimentos compatibles con tus restricciones para esta comida.</p>'}
+ <p class="mut">P ${rd(t.p)} g · G ${rd(t.f)} g · C ${rd(t.c)} g · Fibra ${rd(t.fi)} g<br>Preparación: cocina ${ing.filter(f=>f.role=='P'||f.role=='C').map(f=>f.name.toLowerCase()).join(' y ')||'los ingredientes'}, añade ${ing.filter(f=>f.role=='V'||f.role=='F').map(f=>f.name.toLowerCase()).join(' y ')||'especias al gusto'}. ≈${m.t=='m'?25:m.t=='b'?15:5} min.</p>
+ <div class="row noprint"><button class="s" data-a="rm:${i}:${j}">Cambiar comida</button><button class="s" data-a="pz:${i}:${j}:0.9">− porción</button><button class="s" data-a="pz:${i}:${j}:1.1">+ porción</button><button class="s" data-a="fav:${i}:${j}">☆ Favorito</button></div></div>`}).join('')+
+ `<div class="card"><b>Total diario</b><table><tr><th></th><th>Objetivo</th><th>Plan</th><th>Dif.</th></tr>${rows.map(r=>{const s=st(r[2],r[1]);return`<tr><td class="${s[0]}">${s[1]=='Dentro del objetivo'?'✓':'●'} ${r[0]}</td><td>${r[1]} ${r[3]}</td><td>${rd(r[2])} ${r[3]}</td><td class="${s[0]}">${rd(r[2]-r[1])>0?'+':''}${rd(r[2]-r[1])}</td></tr>`}).join('')}</table><p class="mut">Estado: ${st(T.k,c.kcal)[1]} (calorías). Es una aproximación; no siempre se alcanza el valor exacto.</p><button class="s noprint" data-a="rd:${i}">Regenerar día ${i+1}</button></div>`}).join('')},
+()=>{if(!S.plan)return H('Compras','')+'<div class="card">Primero genera un plan.</div>';if(!S.buy)mkBuy();
+ const cats={};Object.entries(S.buy).forEach(([id,b])=>(cats[F[id].cat]=cats[F[id].cat]||[]).push([id,b]));
+ return H('Lista de compras y exportación','Cantidades sumadas de todo el plan. Edítalas, márcalas o elimínalas.')+Object.entries(cats).map(([k,a])=>`<div class="card"><b>${k}</b>${a.map(([id,b])=>`<div class="row sp"><label class="chk"><input type="checkbox" data-bk="${id}" ${b.done?'checked':''}>${F[id].name}</label><span><input data-bq="${id}" type="number" value="${b.g}" style="width:90px;padding:4px"> g <button class="s" data-a="bd:${id}" aria-label="Eliminar ${F[id].name}">✕</button></span></div>`).join('')}</div>`).join('')+
+ `<div class="row noprint"><button data-a="mkbuy">Actualizar desde el plan</button><button data-a="ex:txt">Exportar texto</button><button data-a="ex:csv">Exportar CSV</button><button data-a="print">Imprimir</button></div>${EX?`<textarea readonly id="ex">${EX}</textarea><button class="s" data-a="copy">Copiar</button>`:''}
+ <h3>Favoritos</h3>${S.fav.length?S.fav.map((f,i)=>`<div class="card row sp"><span><b>${f.n}</b><br><span class="mut">${f.items.map(x=>x.g+' g '+F[x.id].name).join(', ')}</span></span><button class="s" data-a="fd:${i}">Quitar</button></div>`).join(''):'<p class="mut">Aún no tienes favoritos. Guárdalos con ☆ en la revisión del plan.</p>'}`},
+()=>{const L=[...S.log].sort((a,b)=>a.d<b.d?-1:1),w=L.filter(x=>x.peso),mn=Math.min(...w.map(x=>x.peso))-.5,mxw=Math.max(...w.map(x=>x.peso))+.5;
+ const pts=w.map((x,i)=>`${w.length>1?i/(w.length-1)*280+10:150},${110-(x.peso-mn)/(mxw-mn)*100}`).join(' ');
+ return H('Seguimiento','Registra tus datos y valora tendencias de varias semanas, no días sueltos.')+`<div class="card"><div class="grid">${nin('d','Fecha','date')}${nin('peso','Peso (kg)','number','step=".1"')}${nin('cin','Cintura (cm)')}${nin('en','Energía (1–5)')}${nin('ham','Hambre (1–5)')}${nin('sue','Sueño (h)')}${nin('adh','Adherencia (%)')}</div>${ERR.map(e=>`<p class="err">${e}</p>`).join('')}<button class="p" data-a="addlog">Añadir registro</button></div>`+
+ (w.length?`<div class="card"><b>Peso</b><svg viewBox="0 0 300 120" width="100%" role="img" aria-label="Evolución del peso"><polyline points="${pts}" fill="none" stroke="var(--ac)" stroke-width="2.5"/>${pts.split(' ').map(q=>`<circle cx="${q.split(',')[0]}" cy="${q.split(',')[1]}" r="3.5" fill="var(--ac2)"/>`).join('')}</svg><p class="mut">${mn+.5} → ${mxw-.5} kg</p></div>`:'<div class="card mut">Aún no hay registros. Añade tu primer peso para ver la tendencia.</div>')+
+ `<div class="card"><b>Sugerencia prudente</b><p>${evalLog()}</p></div>`+L.slice().reverse().map(x=>`<div class="row sp mut"><span>${x.d}: ${x.peso||'—'} kg · energía ${x.en||'—'} · hambre ${x.ham||'—'} · adh. ${x.adh||'—'} %</span><button class="s" data-a="dl:${S.log.indexOf(x)}">Borrar</button></div>`).join('')}];
+const nin=(k,l,t='number',a='')=>`<label>${l}<input data-k="n.${k}" type="${t}" value="${N[k]??''}" ${a}></label>`;
+function render(){const s=S.step,last=s==9;
+ $('#app').innerHTML=`<div class="noprint"><div class="row sp"><b style="font-family:'Bricolage Grotesque'">Tu nutri wannabe María 💅</b><span class="mut">${STEPS[s]} (${s>4?s:s+1}/9)</span></div><div class="bar"><i style="width:${(s>4?s:s+1)/9*100}%"></i></div>
+ ${s>=5?`<div class="tabs">${[[5,'Resultados'],[6,'Config'],[7,'Plan'],[8,'Compras'],[9,'Seguimiento']].map(([n,t])=>`<button class="${n==s?'on':''}" data-a="go:${n}">${t}</button>`).join('')}</div>`:''}
+ ${S.ex?`<div class="al">Estás usando datos de ejemplo, no tus datos reales. Si escribes encima, se mezclarán.</div>`:''}</div>`+
+ (s>0&&s<5||s==6?ERR.map(e=>`<p class="err">${e}</p>`).join(''):'')+VIEW[s]()+
+ (s>0&&s!=5?`<div class="row sp noprint" style="margin-top:16px"><button data-a="go:${s-1}">Atrás</button>${last?'':`<button class="p" data-a="next">${s==6?'Generar mi plan':'Continuar'}</button>`}</div>`:'')+
+ `<footer class="mut noprint" style="margin-top:28px;font-size:14px">Estimaciones orientativas; no sustituyen a un profesional sanitario. Embarazo, lactancia, menores, enfermedades o antecedentes de trastornos alimentarios: consulta antes. Datos solo en tu navegador. <button class="s" data-a="wipe">Borrar todos mis datos</button></footer>`;window.scrollTo(0,0)}
+function mkBuy(){const b={};S.plan.flat().flatMap(m=>m.items).forEach(x=>b[x.id]=b[x.id]||{g:0,done:false}),S.plan.flat().flatMap(m=>m.items).forEach(x=>b[x.id].g+=x.g);S.buy=b;save()}
+const go=n=>{S.step=n;ERR=[];save();render()};
+const A={go,next(){if(!validate(S.step))return render();if(S.step==6)gen();go(S.step==3?5:S.step+1)},
+ sample(){if(S.p.peso&&!confirm('Esto reemplazará tus datos actuales por datos de ejemplo. ¿Continuar?'))return;S=DEF();Object.assign(S.p,{edad:32,sexo:'h',peso:80,altura:178,pasos:8000,trab:'mod',dias:4,dur:60,tipo:'pesas',cardio:60,sueno:7,obj:'grasa'});S.ex=true;S.log=[0,7,14,21,28].map((o,i)=>({d:new Date(Date.now()-(28-o)*864e5).toISOString().slice(0,10),peso:+(80-i*.3).toFixed(1),en:4,ham:3,adh:85}));go(1)},
+ wipe(){if(!confirm('¿Borrar todos tus datos de este navegador? No se puede deshacer.'))return;try{localStorage.removeItem(KEY)}catch(e){}S=DEF();render()},
+ gen(){gen();render()},rd(i){S.plan[i]=genDay();S.buy=null;save();render()},
+ rm(i,j){const m=S.plan[i][j];m.items=genMeal(m.t,m.tg);S.buy=null;save();render()},
+ pz(i,j,f){const m=S.plan[i][j];m.items.forEach(x=>x.g=Math.max(5,r5(x.g*f)));S.buy=null;save();render()},
+ fav(i,j){const m=S.plan[i][j];S.fav.push({n:m.n+' (día '+(i+1)+')',items:JSON.parse(JSON.stringify(m.items))});save();alert('Guardado en favoritos (pestaña Compras).')},
+ fd(i){S.fav.splice(i,1);save();render()},mkbuy(){mkBuy();render()},bd(id){delete S.buy[id];save();render()},
+ ex(k){const T=S.buy;EX=k=='csv'?'Ingrediente,Categoría,Cantidad (g),Comprado\n'+Object.entries(T).map(([id,b])=>`${F[id].name},${F[id].cat},${b.g},${b.done?'sí':'no'}`).join('\n'):'PLAN NUTRICIONAL (estimación orientativa)\n'+S.plan.map((d,i)=>'\nDía '+(i+1)+'\n'+d.map(m=>{const t=tot(m.items);return' - '+m.n+': '+m.items.map(x=>x.g+' g '+F[x.id].name).join(', ')+' ['+rd(t.k)+' kcal, P'+rd(t.p)+' G'+rd(t.f)+' C'+rd(t.c)+']'}).join('\n')).join('\n')+'\n\nLISTA DE COMPRAS\n'+Object.entries(T).map(([id,b])=>'- '+F[id].name+': '+b.g+' g').join('\n');render()},
+ copy(){try{navigator.clipboard.writeText(EX);alert('Copiado.')}catch(e){$('#ex').select()}},print(){try{window.print()}catch(e){alert('Imprime desde el menú de tu navegador.')}},
+ addlog(){const n=N;ERR=[];if(!n.d)ERR.push('Indica la fecha.');if(!inR(n.peso,30,300))ERR.push('Introduce un peso válido en kilogramos.');if(n.en&&!inR(n.en,1,5)||n.ham&&!inR(n.ham,1,5))ERR.push('Energía y hambre van de 1 a 5.');if(n.adh&&!inR(n.adh,0,100))ERR.push('La adherencia va de 0 a 100.');if(ERR.length)return render();S.log.push({...n});N={d:n.d};save();render()},
+ dl(i){S.log.splice(i,1);save();render()}};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const[a,...x]=b.dataset.a.split(':');A[a]&&A[a](...x.map(v=>isNaN(v)||v===''?v:+v))});
+document.addEventListener('input',e=>{const t=e.target,k=t.dataset.k;if(!k)return;const[o,f]=k.split('.');let v=t.value;if(t.type=='number')v=v===''?'':+v;if(o=='p'&&['nc','ns','nd'].includes(f))v=+v;(o=='p'?S.p:N)[f]=v;save()});
+document.addEventListener('change',e=>{const t=e.target,d=t.dataset;
+ if(d.ck){const a=S.p[d.ck];t.checked?a.includes(t.value)||a.push(t.value):a.splice(a.indexOf(t.value),1);save()}
+ else if(d.sw){const[i,j,q]=d.sw.split(':').map(Number),x=S.plan[i][j].items[q],o=F[x.id],n=F[t.value],key={P:'p',C:'c',F:'f',V:'k'}[o.role];x.id=n.id;x.g=Math.max(10,r5(x.g*o[key]/n[key]));S.buy=null;save();render()}
+ else if(d.bq){S.buy[d.bq].g=+t.value||0;save()}else if(d.bk){S.buy[d.bk].done=t.checked;save()}
+ else if(d.k&&t.tagName=='SELECT'&&['p.nc','p.ns','p.nd'].includes(d.k)){}});
+render();
+</script></body></html>
